@@ -26,6 +26,10 @@ app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.get('/', function (req, res) {
+  res.status(200).send('ok!');
+});
+
 /* Checks whether the table is available now or for a given timestamp
 	@param [timestamp of time to check availability]
 	@return false if table is currently reserved,
@@ -34,30 +38,25 @@ app.use(bodyParser.urlencoded({extended: true}));
 */
 app.get('/available', function(req, res) {
 	var startTime = req.query.starttime || _.now();
-
 	var avail = schedule.checkAvailable(startTime);
-	console.log("\n\n GET/ available.....");
-	console.log(avail);
+
 	var response = _.isBoolean(avail) ? (avail == true ? 'Table is available' : 'Table is reserved') : 'Table is available for the next ' + avail + ' minutes'
 
 	res.json(response);
 });
 
 app.post('/schedule', function(req, res) {
-	var reserveIncrement = req.query.reserve;
-	var startTime = req.query.starttime;
-	// var ranking = { "ranking": req.body.payload };
- 	// var payload = _.extend(ranking, humor);
+	var reserveLength = req.query.reserve || 15;
+	var startTime = req.query.starttime || _.now();
 
-	// fs.writeFile(rankFILE, JSON.stringify(req.body), function (err) {
-	  if (err) return console.log(err)
-	  console.log(JSON.stringify(payload))
-	  console.log('writing to ' + rankFILE)
-	// });
+	var reserve = schedule.reserveTable(reserveLength, startTime);
+	var response = _.isBoolean(reserve) ? (reserve == true ? 'Reservation success': 'Reservation failed') : 'Something unexpected happened'
 
-  	res.json(payload);
+  	res.json(response);
 });
 
-app.listen(app.get('port'), function() {
+var server = app.listen(app.get('port'), function() {
   console.log('Server started: http://localhost:' + app.get('port') + '/');
 });
+
+module.exports = server;

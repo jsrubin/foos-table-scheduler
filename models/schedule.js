@@ -6,6 +6,8 @@
 const store = require('./store');
 const _ = require('underscore');
 
+const reservationLengthMaxMinutes = 60;
+
 module.exports = schedule = store('schedule');
 
 /*  Store in lowdb sorted
@@ -72,19 +74,56 @@ schedule.checkTime = function (requestedtime, reservations) {
 	return result;
 };
 
-schedule.add = function (time) {
-  return this.chain()
-    .sortBy((time) => this.checkTime(time))
-    .value();
+schedule.reserve = function (reserveLength, startTime) {
+	var startValidate = Math.round(startTime/1000);
+	var currentTime = Math.round(_.now()/1000);
+	var len = parseInt(reserveLength);
+
+	// Validation
+	// time cannot be in the past
+	// length must be <= 60 minutes reservationLengthMaxMinutes
+	if (startValidate < currentTime) {
+		console.log("\nWARN: start time cannot be in the past");
+		return false;
+	}
+	if (len > reservationLengthMaxMinutes) {
+		console.log("\nWARN: reservation maximum length cannot exceed " + reservationLengthMaxMinutes);
+		return false;
+	}
+
+	var isAvailable = this.checkAvailable(startTime);
+	console.log("\n>>>>>> is table available to reserve? " + isAvailable);
+
+	// store reservation in lowdb
+	if (_.isBoolean(isAvailable) && isAvailable != false) {
+		var start = parseInt(startTime);
+		var year = (new Date(start)).getFullYear();
+		var month = (new Date(start)).getMonth() + 1;
+		var date = (new Date(start)).getDate();
+
+		console.log("\n>>>>>> reserve table");
+
+	}
+
+	return _.isBoolean(isAvailable) ? isAvailable : false;
 };
 
-schedule.checkAvailable = function (starttime) {	
-	var year = (new Date(starttime)).getFullYear();
-	var month = (new Date(starttime)).getMonth() + 1;
-	var date = (new Date(starttime)).getDate();
+schedule.reserveTable = function (reserveLength, startTime) {
+
+	return this.chain()
+		.map((time) => this.reserve(reserveLength, startTime, time))
+		.last()
+		.value();
+};
+
+schedule.checkAvailable = function (starttime) {
+	var start = parseInt(starttime);
+	var year = (new Date(start)).getFullYear();
+	var month = (new Date(start)).getMonth() + 1;
+	var date = (new Date(start)).getDate();
 
   	return this.chain()
-	    .map((time) => this.checkTime(starttime, time[year][month][date]) )
+	    .map((time) => this.checkTime(start, time[year][month][date]))
 	    .last()
 	    .value();
 };

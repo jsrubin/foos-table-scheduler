@@ -10,14 +10,17 @@
   "dependencies": {
     "async": "2.0.0-rc.3",
     "body-parser": "^1.4.3",
+    "chai": "^3.5.0",
     "express": "^4.13.3",
     "jsx-loader": "^0.13.1",
     "lowdb": "^0.12.5",
     "lodash": "^4.11.2",
+    "mocha": "^2.5.3",
     "react": "^15.0.1",
     "react-dom": "^15.0.1",
     "react-modal": "^1.2.1",
     "request": "2.69.0",
+    "supertest": "^1.2.0",
     "underscore": "1.8.3",
     "webpack": "^1.13.0",
     "webpack-dev-server": "^1.4.7"
