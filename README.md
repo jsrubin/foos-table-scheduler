@@ -12,3 +12,6 @@ DELETE/cancel - end active reservation
 # UI
 display upcoming reservations
 reserve table 15/30/45
+
+# Run Unit tests
+npm test
