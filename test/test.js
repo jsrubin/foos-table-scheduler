@@ -71,6 +71,16 @@ describe('loading express', function () {
 
 	it('responds to /schedule', function testSchedule(done) {
 		var result = request(server)
+			.post('/schedule?reserve=15&starttime=1469541307000')
+			.expect(200)
+		    .end( function (err, res) {
+		      assert.equal(res.body, 'Reservation failed');
+		      done();
+		    });
+	});
+
+	it('responds to /schedule', function testSchedule(done) {
+		var result = request(server)
 			.post('/schedule?reserve=75')
 			.expect(200)
 		    .end( function (err, res) {

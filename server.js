@@ -37,20 +37,32 @@ app.get('/', function (req, res) {
 	@return minutes increment saying table is available for the next X minutes
 */
 app.get('/available', function(req, res) {
-	var startTime = req.query.starttime || _.now();
+	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
 	var avail = schedule.checkAvailable(startTime);
+console.log("\n\n available response.... " + avail);
+	var tableIsReservedMsg = 'Table is reserved till ' + avail;
 
-	var response = _.isBoolean(avail) ? (avail == true ? 'Table is available' : 'Table is reserved') : 'Table is available for the next ' + avail + ' minutes'
+	// var response = _.isBoolean(avail) ? (avail == true ? 'Table is available' : 'Table is reserved') : 'Table is available for the next ' + avail + ' minutes'
+	var response = (avail == true) ? 'Table is available' : (!parseInt(avail) ? tableIsReservedMsg : 'Table is available for the next ' + avail + ' minutes')
 
 	res.json(response);
 });
 
-app.post('/schedule', function(req, res) {
-	var reserveLength = req.query.reserve || 15;
-	var startTime = req.query.starttime || _.now();
+app.get('/schedule', function(req, res) {
+	var reserveLength = parseInt(req.query.reserve) || 15;
+	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
+	var endTime = schedule.endTime(parseInt(startTime), parseInt(reserveLength));
+	
+console.log("\n startTime....... " + startTime);
+console.log("\n reserveLength....... " + reserveLength);
+console.log("\n endTime....... " + endTime);
 
 	var reserve = schedule.reserveTable(reserveLength, startTime);
-	var response = _.isBoolean(reserve) ? (reserve == true ? 'Reservation success': 'Reservation failed') : 'Something unexpected happened'
+	var msgSuccess = 'Table reserved for ' + reserveLength + ' minutes from ' + (new Date(startTime)) + ' till ' + (new Date(endTime));
+	var msgFail = 'Table is reserved till ' + reserve;
+console.log("\nschedule result....... " + reserve);
+	// var response = _.isBoolean(reserve) ? (reserve == true ? msgSuccess: 'Reservation failed') : 'Something unexpected happened'
+	var response = (reserve == true) ? msgSuccess : msgFail;
 
   	res.json(response);
 });
