@@ -39,10 +39,8 @@ app.get('/', function (req, res) {
 app.get('/available', function(req, res) {
 	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
 	var avail = schedule.checkAvailable(startTime);
-console.log("\n\n available response.... " + avail);
 	var tableIsReservedMsg = 'Table is reserved till ' + avail;
 
-	// var response = _.isBoolean(avail) ? (avail == true ? 'Table is available' : 'Table is reserved') : 'Table is available for the next ' + avail + ' minutes'
 	var response = (avail == true) ? 'Table is available' : (!parseInt(avail) ? tableIsReservedMsg : 'Table is available for the next ' + avail + ' minutes')
 
 	res.json(response);
@@ -53,18 +51,22 @@ app.get('/schedule', function(req, res) {
 	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
 	var endTime = schedule.endTime(parseInt(startTime), parseInt(reserveLength));
 	
-console.log("\n startTime....... " + startTime);
-console.log("\n reserveLength....... " + reserveLength);
-console.log("\n endTime....... " + endTime);
-
 	var reserve = schedule.reserveTable(reserveLength, startTime);
 	var msgSuccess = 'Table reserved for ' + reserveLength + ' minutes from ' + (new Date(startTime)) + ' till ' + (new Date(endTime));
 	var msgFail = 'Table is reserved till ' + reserve;
-console.log("\nschedule result....... " + reserve);
-	// var response = _.isBoolean(reserve) ? (reserve == true ? msgSuccess: 'Reservation failed') : 'Something unexpected happened'
+
 	var response = (reserve == true) ? msgSuccess : msgFail;
 
   	res.json(response);
+});
+
+app.get('/cancel', function(req, res) {
+	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
+	var canceled = schedule.cancel(startTime);
+	
+	var response = _.isBoolean(canceled) ? (canceled == true ? 'Reservation was canceled' : 'Failed to cancel reservation') : 'There was an issue canceling the reservation';
+
+	res.json(response);
 });
 
 var server = app.listen(app.get('port'), function() {

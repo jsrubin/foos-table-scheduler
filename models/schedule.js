@@ -52,75 +52,80 @@ schedule.minutesToMS = function (minutes) {
 	return minutes * 60 * 1000;
 };
 
+schedule.cancel = function (timestamp) {
+	var model = this;
+	var reservations = _.clone(this.value());
+
+	var canceled = false;
+	_.find(reservations, function(res) {
+		return _.each(res, function(reservation, resTime) {	
+			const reservationStartTime = parseInt(resTime);
+			const reservationEndTime = model.endTime(reservationStartTime, reservation);
+
+			if (timestamp >= reservationStartTime && timestamp <= reservationEndTime) {
+				model.remove(resTime);
+				canceled = true;
+				return true;
+			}
+		});
+	});
+	return canceled;
+};
+
 schedule.clearExpired = function () {
-	// this.set('schedule', []).value()
-	return;
+	var model = this;
+	var currentTime = this.currentTime();
+	var reservations = _.clone(this.value());
+
+	_.each(reservations, function(res) {
+		_.each(res, function(reservation, resTime) {	
+			const reservationStartTime = parseInt(resTime);
+			const reservationEndTime = model.endTime(reservationStartTime, reservation);
+
+			// if reservation is expired/in the past then let's remove
+			if (currentTime > reservationStartTime && currentTime > reservationEndTime) {
+				model.remove(resTime);
+			}
+		});
+	});
 };
 
 schedule.isTableAvailable = function (requestedtime) {
 	var model = this;
-	const currentTime = this.currentTime();
-// console.log("current time (rounded to minute): " + (new Date(currentTime)));
-// console.log(currentTime);
-
 	var result = true;
 	var request = parseInt(requestedtime);
-	var reservations = this.value();
-// console.log(reservations);
+	var reservations = _.clone(this.value());
+
 	_.find(reservations, function(res) {
-		_.each(res, function(reservation, resTime) {	
+		_.each(res, function(reservation, resTime) {
 			const reservationStartTime = parseInt(resTime);
-			const reservationEndTime = model.endTime(reservationStartTime, reservation); //parseInt(reservationStartTime + model.minutesToMS(parseInt(reservation)));
-	
-	// console.log("\nresTime is..... " + resTime);
-	// console.log("\reservationStartTime is..... " + reservationStartTime);
-
-	// console.log("Reservation start time: " + (new Date(reservationStartTime)));
-	// console.log("Reservation end time: " + (new Date(reservationEndTime)));
-	
-			// const resHour = parseInt((new Date(reservationStartTime)).getHours());
-			// const resMinute = parseInt((new Date(reservationStartTime)).getMinutes());
-
-			// const start = (new Date(reservationStartTime));
-			// const e = (new Date(reservationEndTime));
-			// const req = (new Date(request));
+			const reservationEndTime = model.endTime(reservationStartTime, reservation);
 
 			if (result !== false) {
-				// console.log("..... requesting to server time " + (new Date(request)));
-				// console.log("..... reservation start time..... " + (new Date(reservationStartTime)));
-				// console.log("..... reservation end time..... " + (new Date(reservationEndTime)));
-
 				if (request > reservationStartTime) {
 					if (request > reservationEndTime) {
 						// if reservation is expired/in the past then let's remove
 						if (model.currentTime() > reservationEndTime) {
-							console.log(">>>> removing expired reservation");
-							// delete reservations[resTime];
-							var r = _.reject(reservations, function (res, key) {
-								return res[resTime];
-							});
+							// console.log(">>>> removing expired reservation");
 							model.remove(resTime);
-							console.log(r);
 						}
 					} else {
 						const end = new Date(reservationEndTime);
-						console.log(">>>> table currently booked till " + end);
+						// console.log(">>>> table currently booked till " + end);
 						result = end;
 					}
 				} else if (request < reservationStartTime) {
 					const availableTill = Math.round(((reservationStartTime - request) / 60) / 1000);
-					console.log(">>>> table available for next " + availableTill + " minutes");
+					// console.log(">>>> table available for next " + availableTill + " minutes");
 					result = availableTill.toString();
 				} else if (request === reservationStartTime) {
-					console.log(">>>> table currently booked");
-					var resEnd = new Date(reservationEndTime);
+					// console.log(">>>> table currently booked");
+					const resEnd = new Date(reservationEndTime);
 					result = resEnd;
 				}
 			}
-
 			return;
 		});
-
 		return result !== true;
 	});
 
@@ -149,15 +154,15 @@ schedule.reserve = function (reserveLength, startTime, time) {
 		this.push(addTime);
 	}
 
-	return isAvailable; //_.isBoolean(isAvailable) ? isAvailable : false;
+	return isAvailable;
+};
+
+schedule.cancelReservation = function (timestamp) {
+	return this.cancel(timestamp);
 };
 
 schedule.reserveTable = function (reserveLength, startTime) {
 	return this.reserve(parseInt(reserveLength), parseInt(startTime));
-	// return this.chain()
-	// 	.map((time) => this.reserve(reserveLength, startTime, time))
-	// 	.last()
-	// 	.value();
 };
 
 schedule.checkAvailable = function (starttime) {
