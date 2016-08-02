@@ -3,19 +3,18 @@ var React = require('react');
 var ReactDom = require('react-dom');
 var Modal = require('react-modal');
 var _ = require('underscore');
+var moment = require('moment');
 
-Modal.setAppElement(document.getElementById('leaderboard'));
+Modal.setAppElement(document.getElementById('scheduler'));
 Modal.injectCSS();
 
-var Board = React.createClass({
+var Reservation = React.createClass({
 	getInitialState: function () {
   		return {
   			url: '',
-	    	ranking: [],
-	    	newTopThree: [],
-	    	topThree: [],
-	    	humor: [],
-	    	trash: []
+	    	available: true,
+	    	availableFor: '',
+	    	reservedTill: ''
 	    };
 	},
 
@@ -29,23 +28,29 @@ var Board = React.createClass({
     },
 
 
-    loadCommentsFromServer: function() {
-     	var url = this.state.url || this.props.url;
+    loadCommentsFromServer: function(e) {
+    	var dataUrl = e ? (e.target ? e.target.getAttribute('data-url') : '') : '';
+     	var url = dataUrl || this.state.url || this.props.url;
+     	console.log("\n\n loadCommentsFromServer:::: " + url);
+
 	    $.ajax({
 	      url: url,
 	      dataType: 'json',
 	      cache: false,
 	      success: function(data) {
-	              var newTopThree = _.filter(data.payload, function (top) {
-	              	return top.rank == 1 || top.rank == 2 || top.rank == 3;
-	              });
+console.log('\nloading comments from server.....');
+console.log(data.available);
+	    	if (data.available) {
+        		document.body.className = 'available';
+	    	} else {
+	    		document.body.className = 'reserved';
+	    	}
 
-	              this.setState({
-			    	ranking: data.ranking,
-			    	newTopThree: newTopThree,
-			    	humor: data.humor,
-			    	trash: data.trashTalk
-	              });
+			this.setState({
+				available: data.available,
+				availableFor: data.availableFor,
+				reservedTill: data.reservedTill
+			});
 
 	      }.bind(this),
 	      error: function(xhr, status, err) {
@@ -54,24 +59,40 @@ var Board = React.createClass({
 	    });
 	  },
 
-	renderHumor: function () {
-		return (
-		    React.createElement(HumorModule, {
-		    	newTopThree: this.state.newTopThree,
-		    	topThree: this.state.topThree,
-	    		humor: this.state.humor,
-	    		trash: this.state.trash
-		    	})
-		);
-    },
+   //  cancelReservationFromServer: function() {
+   //   	var url = '/cancel';
+	  //   $.ajax({
+	  //     url: url,
+	  //     dataType: 'json',
+	  //     cache: false,
+	  //     success: function(data) {
 
-	renderLeaderboard: function () {
+	  //   	if (data.available) {
+   //      		document.body.className = 'available';
+	  //   	} else {
+	  //   		document.body.className = 'reserved';
+	  //   	}
+
+			// this.setState({
+			// 	available: data.available,
+			// 	availableFor: data.availableFor,
+			// 	reservedTill: data.reservedTill
+			// });
+
+	  //     }.bind(this),
+	  //     error: function(xhr, status, err) {
+	  //       console.error(this.props.url, status, err.toString());
+	  //     }.bind(this)
+	  //   });
+	  // },
+
+	renderScheduler: function () {
 		return (
-		    React.createElement(Leaderboard, {
-	    		ranking: this.state.ranking,
-	    		newTopThree: this.state.newTopThree,
-		    	topThree: this.state.topThree,
-	    		renderHumor: this.renderHumor()
+		    React.createElement(Scheduler, {
+	    		available: this.state.available,
+	    		availableFor: this.state.availableFor,
+		    	reservedTill: this.state.reservedTill,
+		    	loadCommentsFromServer: this.loadCommentsFromServer
 		    	})
 		);
     },
@@ -79,9 +100,9 @@ var Board = React.createClass({
     render: function () {
 	    return (
 	        <nav >
-	          <div role="board"> 
+	          <div role="schedule"> 
 
-	              {this.renderLeaderboard()}
+	              {this.renderScheduler()}
 
 	          </div>
 	       </nav>
@@ -99,161 +120,110 @@ function cx(map) {
   return className.join(' ');
 }
 
-var HumorModule = React.createClass({
-	render: function () {
-		var humor = this.props.humor;
-		var trash = this.props.trash;
-		var newTop = this.props.newTopThree;
-		var top = this.props.topThree;
+var Scheduler = React.createClass({
 
-		if (humor.length > 0) {
-			var leaderChange = _.difference(top, newTop).length > 0 ? true : false;
-			if (leaderChange) {
-				humor = trash;
-			}
 
-			var r = Math.floor(Math.random() * (humor.length));
+	// leaderRowsUpcoming: function (ranking) {
+	// 	return ranking.map(function(leader) {
+	// 	    	var isPrimary = (leader.rank % 2 === 1) ? true : false;
+	// 	    	var rank = leader.rank;
+	// 	    	var rowClass = cx({
+	// 							rank: true,
+	// 							primary: {isPrimary} 
+	// 						});
+	// 	    	if (rank == 4 || rank == 5 || rank == 6) {
+	// 		        return (
+	// 						<tr className="rowChallenger">
+	// 							<th scope="row"
+	// 							className={cx({ 
+	// 								row: true,
+	// 								primary: {isPrimary}
+	// 							})}>
+	// 							</th><td 
+	// 							className={rowClass}>
+	// 							{leader.name}</td>
+	// 							<td></td>
+	// 						</tr>
+	// 			     );
+	// 		    }
+	// 		});
+	// },
 
-			var humorText = [];
-			humorText.push(humor[r].text);
-			var cls = humor[r].style;
-	    	var rowClass = cx({
-							triangle: true,
-							right: cls == 'right' ? true : false,
-							left: cls == 'left' ? true : false,
-							top: cls == 'top' ? true : false,
-						});
-			return (
-		  		<p className={rowClass}><i className="humor">"{humorText}"</i></p>
-		  		);
-		}
-		return (
-			<p></p>
-			);
-	}
-})
+	cancelReservationButton: function (cancelReservation) {
+		// var cancel = [];
 
-var Leaderboard = React.createClass({
+		// cancel.push()
 
-	score: function (wins, losses) {
-		return Math.round((wins / (wins + losses)) * 100) / 100;
+		// return ranking.map(function(leader) {
+		//     	var isPrimary = (leader.rank % 2 === 1) ? true : false;
+		//     	var rank = leader.rank;
+		//     	var rowClass = cx({
+		// 						rank: true,
+		// 						primary: {isPrimary} 
+		// 					});
+		//     	if (rank == 4 || rank == 5 || rank == 6) {
+		// 	        return (
+		// 					<tr className="rowChallenger">
+		// 						<th scope="row"
+		// 						className={cx({ 
+		// 							row: true,
+		// 							primary: {isPrimary}
+		// 						})}>
+		// 						</th><td 
+		// 						className={rowClass}>
+		// 						{leader.name}</td>
+		// 						<td></td>
+		// 					</tr>
+		// 		     );
+		// 	    }
+		// 	});
 	},
 
-	totalGames: function (wins, losses) {
-		return wins + losses;
-	},
-
-	ranking: function (ranking) {
-		var self = this;
-		_.each(ranking, function (player) {
-			player.score = self.score(player.wins, player.losses);
-			player.total = self.totalGames(player.wins, player.losses);
-		});
-
-		return _.sortBy(ranking, function (player) {
-			return player.score;
-		}).reverse();
-	},
-
-	leaderRowsTop: function (ranking, displayCount, renderHumor) {
-		return ranking.map(function(leader, index) {
-				var rank = index + 1;
-		    	var isPrimary = (rank % 2 === 1) ? true : false;
-		    	var rowClass = cx({
-								rank: true,
-								primary: {isPrimary} 
-							});
-		    	var metal = [];
-
-				var rand = Math.floor(Math.random() * (displayCount));
-
-		    	if (rank == 1) {
-		    		metal.push(<img src="resources/gold.png"/>);
-		    	} if (rank == 2) {
-		    		metal.push(<img src="resources/silver.png"/>);
-		    	} if (rank == 3) {
-		    		metal.push(<img src="resources/bronze.png"/>);
-		    	}
-
-		    	var humor = [];
-		    	if (rank == rand) {
-		    		humor.push(renderHumor);
-		    	}
-
-		    	if (rank <= displayCount) {
-			        return (
-							<tr>
-								<td>
-								</td>
-								<th scope="row"
-								className={cx({ 
-									row: true,
-									primary: {isPrimary} 
-								})}>
-								{rank}</th>
-								<td 
-								className={rowClass}>
-								{leader.name}</td>
-								<td>
-								{leader.score} %
-								</td>
-								<td>{metal}</td>
-							</tr>
-				     );
-			    }
-			});
-	},
-
-	leaderRowsUpcoming: function (ranking) {
-		return ranking.map(function(leader) {
-		    	var isPrimary = (leader.rank % 2 === 1) ? true : false;
-		    	var rank = leader.rank;
-		    	var rowClass = cx({
-								rank: true,
-								primary: {isPrimary} 
-							});
-		    	if (rank == 4 || rank == 5 || rank == 6) {
-			        return (
-							<tr className="rowChallenger">
-								<th scope="row"
-								className={cx({ 
-									row: true,
-									primary: {isPrimary}
-								})}>
-								</th><td 
-								className={rowClass}>
-								{leader.name}</td>
-								<td></td>
-							</tr>
-				     );
-			    }
-			});
+	reserveTableButtons: function () {
 	},
 
 	render: function() {
-		var newTopThree = this.props.newTopThree;
-		var topThree = this.props.topThree;
-		var leaderRows = [];
-		var upcomingLeaderRows = [];
-		var renderHumor = this.props.renderHumor;
+	    var available = this.props.available;
+	    var availableFor = this.props.availableFor;
+		var reservedTill = this.props.reservedTill;
+		var postReservation = this.props.loadCommentsFromServer;
 
-		var displayCount = 6;
+		var displayBody = [];
+		var displayTitle = "Available";
 
-		if (this.props.ranking && this.props.ranking.length > 0) {
-			var ranking = this.ranking(this.props.ranking);
-			leaderRows = this.leaderRowsTop(ranking, displayCount, renderHumor);
-			// upcomingLeaderRows = this.leaderRowsUpcoming(this.props.ranking);
-	    }
+		if (reservedTill) {
+			displayTitle = "Reserved Till";
+			reservedTill = moment(reservedTill).format("dddd, MMMM Do YYYY, h:mm:ss a");
+			// render CANCEL button
+			displayBody.push(<div><label for='role'>{reservedTill}</label><p>
+				<button className='btn btn-info btn-lg' data-url='/cancel' data-id={reservedTill} onClick={postReservation}>Cancel</button></p></div>);
+		} else {
+			if (availableFor) {
+				var b = "For Next " + availableFor + " Minutes";
+				displayBody.push(<div>{b}</div>);
+			}
+			// render RESERVE INCREMENT BUTTONS
+			displayBody.push(<div><label for='role'>{reservedTill}</label><p>
+				<button className='btn btn-info btn-lg' data-url='/schedule' data-id={reservedTill} onClick={postReservation}>15</button>
+				<button className='btn btn-info btn-lg' data-url='/schedule?reserve=30' data-id={reservedTill} onClick={postReservation}>30</button>
+				<button className='btn btn-info btn-lg' data-url='/schedule?reserve=45' data-id={reservedTill} onClick={postReservation}>45</button>
+				</p></div>);
+		}
+
+		// if (this.props.ranking && this.props.ranking.length > 0) {
+		// 	var ranking = this.ranking(this.props.ranking);
+		// 	leaderRows = this.leaderRowsTop(ranking, displayCount, renderHumor);
+	    //    }
 	    return (
 			<div className="top6">
 			<table className="table">
 				<thead>
 					<tr>
-						<th></th><th scope="row" className="row">Rank</th><th>Leader</th><th>Score</th><th></th>
+						<th scope="row" className="row">{displayTitle}</th>
 					</tr>
 				</thead>
-				<tbody>
-	            	{leaderRows}
+				<tbody scope="row" className="row">
+	            	{displayBody}
 	    		</tbody>
 	    	</table>
 	    	</div>
@@ -261,4 +231,4 @@ var Leaderboard = React.createClass({
 	}
 });
 
-ReactDom.render(<Board url="/leaderboard" pollInterval={300000} />, document.getElementById('leaderboard'));
+ReactDom.render(<Reservation url="/available" pollInterval={10000} />, document.getElementById('scheduler'));

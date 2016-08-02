@@ -152,6 +152,9 @@ schedule.reserve = function (reserveLength, startTime, time) {
 	if (_.isBoolean(isAvailable) && isAvailable !== false) {
 		var addTime = { [startValidate]: reserveLength.toString() };
 		this.push(addTime);
+		console.log('...stored in db ');
+		console.log(addTime);
+		isAvailable = false;
 	}
 
 	return isAvailable;

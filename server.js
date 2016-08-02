@@ -41,7 +41,12 @@ app.get('/available', function(req, res) {
 	var avail = schedule.checkAvailable(startTime);
 	var tableIsReservedMsg = 'Table is reserved till ' + avail;
 
-	var response = (avail == true) ? 'Table is available' : (!parseInt(avail) ? tableIsReservedMsg : 'Table is available for the next ' + avail + ' minutes')
+	// var response = (avail == true) ? 'Table is available' : (!parseInt(avail) ? tableIsReservedMsg : 'Table is available for the next ' + avail + ' minutes')
+	var response = {
+		'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
+		'availableFor': parseInt(avail) ? avail : '',
+		'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : ''
+	 }
 
 	res.json(response);
 });
@@ -50,12 +55,30 @@ app.get('/schedule', function(req, res) {
 	var reserveLength = parseInt(req.query.reserve) || 15;
 	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
 	var endTime = schedule.endTime(parseInt(startTime), parseInt(reserveLength));
-	
-	var reserve = schedule.reserveTable(reserveLength, startTime);
-	var msgSuccess = 'Table reserved for ' + reserveLength + ' minutes from ' + (new Date(startTime)) + ' till ' + (new Date(endTime));
-	var msgFail = 'Table is reserved till ' + reserve;
 
-	var response = (reserve == true) ? msgSuccess : msgFail;
+	var avail = schedule.reserveTable(reserveLength, startTime);
+	// var msgSuccess = 'Table reserved for ' + reserveLength + ' minutes from ' + (new Date(startTime)) + ' till ' + (new Date(endTime));
+	// var msgFail = 'Table is reserved till ' + reserve;
+
+	// var response = (reserve == true) ? msgSuccess : msgFail;
+
+
+// TODO need to check if future reservation?
+
+	// var response = {
+	// 	'available': _.isBoolean(reserve) ? !reserve : (parseInt(reserve) ? false : true),
+	// 	'availableFor': parseInt(reserve) ? reserve : '',
+	// 	'reservedTill': (!_.isBoolean(reserve) && !parseInt(reserve)) ? reserve : '',
+	// 	'startTime': (new Date(startTime)),
+	// 	'endTime': (new Date(endTime)),
+	// 	'reserveLength': reserveLength
+	//  }
+
+	var response = {
+		'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
+		'availableFor': parseInt(avail) ? avail : '',
+		'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : ''
+	 }
 
   	res.json(response);
 });
@@ -64,7 +87,13 @@ app.get('/cancel', function(req, res) {
 	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
 	var canceled = schedule.cancel(startTime);
 	
-	var response = _.isBoolean(canceled) ? (canceled == true ? 'Reservation was canceled' : 'Failed to cancel reservation') : 'There was an issue canceling the reservation';
+	// var response = _.isBoolean(canceled) ? (canceled == true ? 'Reservation was canceled' : 'Failed to cancel reservation') : 'There was an issue canceling the reservation';
+
+	var response = {
+		'available': ((_.isBoolean(canceled) && canceled == true) || parseInt(canceled)) ? true : false,
+		'availableFor': parseInt(canceled) ? canceled : '',
+		'reservedTill': (!_.isBoolean(canceled) && !parseInt(canceled)) ? canceled : ''
+	 }
 
 	res.json(response);
 });

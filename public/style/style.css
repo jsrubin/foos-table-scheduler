@@ -1,23 +1,34 @@
-@font-face {
-    font-family: arcade;
-    src: url('arcade_classic_pizz/ARCADECLASSIC.TTF');
-}
-
 body, html {
   height: 90%;
   font-family: "arcade";
 }
 
 body::after {
+  /*background-image: url("../resource/fts-green.png");*/
   content: "";
-  background: url("../resources/foosball-men.png");
-  opacity: 0.1;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
   position: absolute;
   z-index: -1;   
+}
+
+p {
+  display: block;
+}
+
+button {
+  margin: 0 20px 0 0;
+  padding: 10px 40px 10px 40px !important;
+}
+
+.reserved {
+  background-image: url("../resource/fts-red.png");
+}
+
+.available {
+  background-image: url("../resource/fts-green.png");
 }
 
 .header {
@@ -27,34 +38,24 @@ body::after {
 	width: 60%;
 }
 
+.reserved {
+  background-color: #E799A3; 
+  /* 
+  flamingo pink #F9A7B0 
+  light coral #E77471
+  scarlet #FF2400
+  */
+}
+
 h2 {
 	vertical-align: center;
-}
-
-
-img {
-	float: left;
-}
-
-.humor {
-  font-family: arial;
-	font-size: 1vw;
-	padding: 0 20px;
-	text-align: center;
-}
-
-.inspiration {
-	margin: auto;
-	width: 100%;
-	font-size: 2vw;
-	padding: 20px 0 20px;
 }
 
 .top6 {
 	margin: auto;
 	padding: 0 20px 0 20px;
 	height: 90%;
-	width: 70%;
+	/* width: 70%; */
 }
 
 table {
@@ -68,167 +69,9 @@ table>thead>tr>td, table>thead>tr>th, table>tbody>tr>th, table>tbody>tr>td {
 
 .table>tbody>tr.rowChallenger>td {
 	padding: 2px !important;
+    width: 100%;
 }
 
 .tableChallengers {
   padding: 0 130px;
 }
-
-.challengers {
-  font-size: 1.5vw;
-}
-
-.rowChallenger {
-	padding: 5px 0 5px 0;
-}
-
-.row {
-	text-align: center;
-}
-
-p {
-    display: inline-block;
-    -webkit-margin-before: 1em;
-    -webkit-margin-after: 1em;
-    -webkit-margin-start: 0px;
-    -webkit-margin-end: 0px;
-}
-
-.triangle {
-    position: relative;
-    padding: 15px;
-    margin: 1em 0 3em;
-    color: #fff;
-    background: #075698;
-    background: -webkit-gradient(linear, 0 0, 0 100%, from(#2e88c4), to(#075698));
-    background: -moz-linear-gradient(#2e88c4, #075698);
-    background: -o-linear-gradient(#2e88c4, #075698);
-    background: linear-gradient(#2e88c4, #075698);
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-}
-
-.triangle:after {
-    content: "";
-    position: absolute;
-    bottom: -20px;
-    left: 50px;
-    border-width: 20px 0 0 20px;
-    border-style: solid;
-    border-color: #075698 transparent;
-    display: block;
-    width: 0;
-}
-
-/*.triangle.left:after {
-    content: "";
-    position: absolute;
-    bottom: -20px;
-    left: 50px;
-    border-width: 20px 0 0 20px;
-    border-style: solid;
-    border-color: #075698 transparent;
-    display: block;
-    width: 0;
-}*/
-
-.triangle.left {
-    margin-right: 50px;
-    background: #f3961c;
-}
-
-.triangle.left:after {
-    top: 16px;
-    right: -50px;
-    bottom: auto;
-    left: auto;
-    border-width: 10px 0 10px 50px;
-    border-color: transparent #f3961c;
-}
-
-/*.triangle.right:before {
-    content: "";
-    position: absolute;
-    bottom: -30px;
-    right: 80px;
-    border-width: 0 0 30px 50px;
-    border-style: solid;
-    border-color: transparent #075698;
-    display: block;
-    width: 0;
-}*/
-
-/*.triangle.right:after {
-    content: "";
-    position: absolute;
-    bottom: -30px;
-    right: 110px;
-    border-width: 0 0 30px 20px;
-    border-style: solid;
-    border-color: transparent #fff;
-    display: block;
-    width: 0;
-}*/
-
-.triangle.right {
-    margin-right: 40px;
-    background: #075698;
-}
-
-.triangle.right:after {
-    top: 16px;
-    right: -40px;
-    bottom: auto;
-    left: auto;
-    border-width: 15px 0 0 40px;
-    border-color: transparent #075698;
-}
-
-.triangle.top {
-    background: -webkit-gradient(linear, 0 0, 0 100%, from(#075698), to(#2e88c4));
-    background: -moz-linear-gradient(#075698, #2e88c4);
-    background: -o-linear-gradient(#075698, #2e88c4);
-    background: linear-gradient(#075698, #2e88c4);
-}
-
-.triangle.top:after {
-    top: -20px;
-    right: 50px;
-    bottom: auto;
-    left: auto;
-    border-width: 20px 20px 0 0;
-    border-color: transparent #075698;
-}
-
-/*div .no-padding {
-  padding: 0;
-}*/
-
-/*.play {
-	padding: 0 20px 0 20px;
-	height: 90%
-}
-
-.start {
-	padding: 0 20px 0 20px;
-	height: 90%
-}
-
-.btn-lg {
-  width: 49%;
-  height: 100%;
-  font-size: 8vw;
-}
-
-.btn-lg.onStart{
-  width: 100%;
-  height: 90%;
-  font-size: 8vw;
-}
-
-form {
-	width: 100%;
-	height: 90%;
-}*/
-
