@@ -2,31 +2,26 @@
   "schedule": [
     {
       "available": false,
-      "startTime": 1470356940000,
-      "endTime": 1470357840000,
-      "reservationLength": "15",
-      "reservedBy": "jrubin"
+      "startTime": 1470411000000,
+      "endTime": 1470411300000,
+      "reservationLength": "5",
+      "reservedBy": "rubin"
     },
     {
       "available": false,
-      "startTime": 1470358800000,
-      "endTime": 1470359700000,
-      "reservationLength": "15",
-      "reservedBy": "jrubin"
+      "startTime": 1470410400000,
+      "endTime": 1470410700000,
+      "reservationLength": "5",
+      "reservedBy": "justin",
+      "availableFor": "10"
     },
     {
       "available": false,
-      "startTime": 1470360000000,
-      "endTime": 1470360900000,
-      "reservationLength": "15",
-      "reservedBy": "jrubin"
-    },
-    {
-      "available": false,
-      "startTime": 1470361200000,
-      "endTime": 1470362700000,
-      "reservationLength": "25",
-      "reservedBy": "jrubin"
+      "startTime": 1470410820000,
+      "endTime": 1470410940000,
+      "reservationLength": "2",
+      "reservedBy": "justin",
+      "availableFor": "3"
     }
   ]
 }

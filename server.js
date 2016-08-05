@@ -58,7 +58,7 @@ app.get('/schedule', function(req, res) {
 	var startTime = parseInt(futureTime) || schedule.currentTime();
 	var endTime = schedule.endTime(parseInt(startTime), parseInt(reserveLength));
 	var reservedBy = req.query.name || 'unknown';
-
+console.log("\nreserved by??\n"  + reservedBy + ' :: ' + req.query.name);
 	var response = schedule.reserveTable(reserveLength, startTime, reservedBy);
 	// var msgSuccess = 'Table reserved for ' + reserveLength + ' minutes from ' + (new Date(startTime)) + ' till ' + (new Date(endTime));
 	// var msgFail = 'Table is reserved till ' + reserve;
