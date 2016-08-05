@@ -74,16 +74,16 @@ schedule.cancel = function (timestamp) {
 
 	var canceled = false;
 	_.find(reservations, function(res) {
-		return _.each(res, function(reservation, resTime) {	
-			const reservationStartTime = parseInt(resTime);
-			const reservationEndTime = model.endTime(reservationStartTime, reservation);
+		// return _.each(res, function(reservation, resTime) {	
+			const reservationStartTime = parseInt(res.startTime);
+			const reservationEndTime = model.endTime(reservationStartTime, res.reservationLength);
 
 			if (timestamp >= reservationStartTime && timestamp <= reservationEndTime) {
-				model.remove(resTime);
+				model.remove(res);
 				canceled = true;
 				return true;
 			}
-		});
+		// });
 	});
 	return canceled;
 };
