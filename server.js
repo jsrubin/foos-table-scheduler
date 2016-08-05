@@ -38,32 +38,32 @@ app.get('/', function (req, res) {
 */
 app.get('/available', function(req, res) {
 	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
-	var avail = schedule.checkAvailable(startTime);
-	var tableIsReservedMsg = 'Table is reserved till ' + avail;
-
+	var response = schedule.checkAvailable(startTime);
+	// var tableIsReservedMsg = 'Table is reserved till ' + avail;
 	// var response = (avail == true) ? 'Table is available' : (!parseInt(avail) ? tableIsReservedMsg : 'Table is available for the next ' + avail + ' minutes')
-	var response = {
-		'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
-		'availableFor': parseInt(avail) ? avail : '',
-		'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : ''
-	 }
+	// var response = {
+	// 	'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
+	// 	'availableFor': parseInt(avail) ? avail : '',
+	// 	'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : '',
+	// 	'reservedBy': ''
+	//  }
 
 	res.json(response);
 });
 
 app.get('/schedule', function(req, res) {
 	var reserveLength = parseInt(req.query.reserve) || 15;
-	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
-	var endTime = schedule.endTime(parseInt(startTime), parseInt(reserveLength));
+	var futureTime = req.query.starttime ? schedule.futureTime(req.query.starttime) : '';
 
-	var avail = schedule.reserveTable(reserveLength, startTime);
+	var startTime = parseInt(futureTime) || schedule.currentTime();
+	var endTime = schedule.endTime(parseInt(startTime), parseInt(reserveLength));
+	var reservedBy = req.query.name || 'unknown';
+
+	var response = schedule.reserveTable(reserveLength, startTime, reservedBy);
 	// var msgSuccess = 'Table reserved for ' + reserveLength + ' minutes from ' + (new Date(startTime)) + ' till ' + (new Date(endTime));
 	// var msgFail = 'Table is reserved till ' + reserve;
 
 	// var response = (reserve == true) ? msgSuccess : msgFail;
-
-
-// TODO need to check if future reservation?
 
 	// var response = {
 	// 	'available': _.isBoolean(reserve) ? !reserve : (parseInt(reserve) ? false : true),
@@ -74,11 +74,12 @@ app.get('/schedule', function(req, res) {
 	// 	'reserveLength': reserveLength
 	//  }
 
-	var response = {
-		'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
-		'availableFor': parseInt(avail) ? avail : '',
-		'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : ''
-	 }
+	// var response = {
+	// 	'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
+	// 	'availableFor': parseInt(avail) ? avail : '',
+	// 	'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : '',
+	// 	'reservedBy': ''
+	//  }
 
   	res.json(response);
 });

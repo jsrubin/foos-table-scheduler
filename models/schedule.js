@@ -39,6 +39,37 @@ schedule.currentTime = function () {
 	return this.roundToMinute(_.now());
 };
 
+/*
+	This function converts HHMM time into millisecond timestamp
+*/
+schedule.futureTime = function (hourMinute) {
+	if (hourMinute.length < 3 || hourMinute.length > 4) {
+		console.log("\nWARN: requested time must be in HMM or HHMM format");
+		return;
+	}
+	var hour = hourMinute.length === 3 ? hourMinute.substring(0, 1) : hourMinute.substring(0, 2);
+	var minute = hourMinute.substring(hourMinute.length - 2);
+
+	var hmill = hour * 3600000;
+	var mmill = minute * 60000;
+
+	var currentMS = this.currentTime();
+	var curMinute = (new Date(currentMS)).getMinutes().toString();
+	curMinute = curMinute.length === 1 ? '0' + curMinute : curMinute;
+	var currentHourMinute = (new Date(currentMS)).getHours().toString() + curMinute;
+
+	var curHourMS = new Date(currentMS).getHours() * 3600000;
+	var curMinMS = new Date(currentMS).getMinutes() * 60000;
+	
+	if (parseInt(hourMinute) > parseInt(currentHourMinute)) {
+		var difH = hmill - curHourMS;
+		var difM = mmill - curMinMS;
+		var future = currentMS + difH + difM;
+		return future;
+	}
+	return;
+};
+
 schedule.endTime = function (reservationStartTime, reservationLength) {
 	return parseInt(reservationStartTime + this.minutesToMS(parseInt(reservationLength)));
 };
@@ -90,52 +121,70 @@ schedule.clearExpired = function () {
 	});
 };
 
-schedule.isTableAvailable = function (requestedtime) {
+	// var response = {
+	// 	'available': ((_.isBoolean(avail) && avail == true) || parseInt(avail)) ? true : false,
+	// 	'availableFor': parseInt(avail) ? avail : '',
+	// 	'reservedTill': (!_.isBoolean(avail) && !parseInt(avail)) ? avail : '',
+	// 	'reservedBy': ''
+	//  }
+
+schedule.isTableAvailable = function (requestedtime, requestedLength) {
 	var model = this;
-	var result = true;
+	var isAvailable = true;
 	var request = parseInt(requestedtime);
 	var reservations = _.clone(this.value());
 
 	_.find(reservations, function(res) {
-		_.each(res, function(reservation, resTime) {
-			const reservationStartTime = parseInt(resTime);
-			const reservationEndTime = model.endTime(reservationStartTime, reservation);
+		const reservationStartTime = parseInt(res.startTime);
+		const reservationEndTime = model.endTime(reservationStartTime, res.reservationLength);
 
-			if (result !== false) {
-				if (request > reservationStartTime) {
-					if (request > reservationEndTime) {
-						// if reservation is expired/in the past then let's remove
-						if (model.currentTime() > reservationEndTime) {
-							// console.log(">>>> removing expired reservation");
-							model.remove(resTime);
-						}
-					} else {
-						const end = new Date(reservationEndTime);
-						// console.log(">>>> table currently booked till " + end);
-						result = end;
+		if (isAvailable === true) {
+			if (request > reservationStartTime) {
+				if (request > reservationEndTime) {
+					// if reservation is expired/in the past then let's remove
+					if (model.currentTime() > reservationEndTime) {
+						// console.log(">>>> removing expired reservation");
+						model.remove(res);
 					}
-				} else if (request < reservationStartTime) {
-					const availableTill = Math.round(((reservationStartTime - request) / 60) / 1000);
-					// console.log(">>>> table available for next " + availableTill + " minutes");
-					result = availableTill.toString();
-				} else if (request === reservationStartTime) {
-					// console.log(">>>> table currently booked");
-					const resEnd = new Date(reservationEndTime);
-					result = resEnd;
+				} else {
+					const end = new Date(reservationEndTime);
+					// console.log(">>>> table currently booked till " + end);
+					isAvailable = res; //end;
 				}
+			} else if (request < reservationStartTime) {
+				const availableTill = Math.round(((reservationStartTime - request) / 60) / 1000);
+				// console.log(">>>> table available for next " + availableTill + " minutes");
+				if ((requestedLength && requestedLength < availableTill) || (!requestedLength)) {
+					res.available = true;
+					res.availableTill = availableTill.toString();
+					isAvailable = res; //availableTill.toString();
+				}
+			} else if (request === reservationStartTime) {
+				// console.log(">>>> table currently booked");
+				const resEnd = new Date(reservationEndTime);
+				isAvailable = res; //resEnd;
 			}
-			return;
-		});
-		return result !== true;
+		}
+		return isAvailable !== true;
 	});
 
-	return result;
+	return isAvailable;
 };
+/*
+  {
+      "available": false,
+      "startTime": "1470317400000",
+      "endTime": "1470317400000",
+      "reservationLength" : "15",
+      "reservedBy": "jrubin"
+    }
+    */
 
-schedule.reserve = function (reserveLength, startTime, time) {
+schedule.reserve = function (reserveLength, startTime, reservedBy) {
 	var startValidate = this.roundToMinute(startTime);
 	var currentTime = this.currentTime();
 	var len = parseInt(reserveLength);
+	var endTime = this.endTime(startTime, reserveLength);
 
 	if (startValidate < currentTime) {
 		console.log("\nWARN: start time cannot be in the past");
@@ -149,12 +198,18 @@ schedule.reserve = function (reserveLength, startTime, time) {
 	var isAvailable = this.checkAvailable(startValidate);
 
 	// store reservation in lowdb
-	if (_.isBoolean(isAvailable) && isAvailable !== false) {
-		var addTime = { [startValidate]: reserveLength.toString() };
-		this.push(addTime);
-		console.log('...stored in db ');
-		console.log(addTime);
-		isAvailable = false;
+	if (_.isBoolean(isAvailable) || isAvailable.available === true) {
+		var addReservation = {
+			available: false,
+			startTime: startValidate,
+			endTime: endTime,
+			reservationLength: reserveLength.toString(),
+			reservedBy: reservedBy
+		};
+		this.push(addReservation);
+		console.log('DEBUG: stored reservation in db ');
+		console.log(addReservation);
+		return addReservation;
 	}
 
 	return isAvailable;
@@ -164,8 +219,8 @@ schedule.cancelReservation = function (timestamp) {
 	return this.cancel(timestamp);
 };
 
-schedule.reserveTable = function (reserveLength, startTime) {
-	return this.reserve(parseInt(reserveLength), parseInt(startTime));
+schedule.reserveTable = function (reserveLength, startTime, reservedBy) {
+	return this.reserve(parseInt(reserveLength), parseInt(startTime), reservedBy);
 };
 
 schedule.checkAvailable = function (starttime) {

@@ -11,7 +11,8 @@ body::after {
   bottom: 0;
   right: 0;
   position: absolute;
-  z-index: -1;   
+  z-index: -1;
+  text-align: left;
 }
 
 p {
@@ -38,14 +39,14 @@ button {
 	width: 60%;
 }
 
-.reserved {
+/*.reserved {
   background-color: #E799A3; 
-  /* 
+   
   flamingo pink #F9A7B0 
   light coral #E77471
   scarlet #FF2400
-  */
-}
+  
+}*/
 
 h2 {
 	vertical-align: center;
@@ -60,6 +61,11 @@ h2 {
 
 table {
   font-size: 3vw;
+  width: 60%;
+  text-align: left;
+  /*opacity: 0.1;*/
+  /*background-color: green;*/
+  background-color:rgba(255,255,255,0.5);
 }
 
 table>thead>tr>td, table>thead>tr>th, table>tbody>tr>th, table>tbody>tr>td {
@@ -67,11 +73,20 @@ table>thead>tr>td, table>thead>tr>th, table>tbody>tr>th, table>tbody>tr>td {
 	border-bottom: 0 !important;
 }
 
-.table>tbody>tr.rowChallenger>td {
+table>tbody.buttons {
+ vertical-align: bottom;
+ text-align: center;
+}
+
+table>tbody>tr>td {
+  vertical-align: bottom;
+}
+
+/*.table>tbody>tr.rowChallenger>td {
 	padding: 2px !important;
     width: 100%;
 }
 
 .tableChallengers {
   padding: 0 130px;
-}
+}*/

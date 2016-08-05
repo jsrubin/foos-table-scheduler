@@ -1,13 +1,32 @@
 {
   "schedule": [
     {
-      "1469889480000": "45"
+      "available": false,
+      "startTime": 1470356940000,
+      "endTime": 1470357840000,
+      "reservationLength": "15",
+      "reservedBy": "jrubin"
     },
     {
-      "1469892600000": "45"
+      "available": false,
+      "startTime": 1470358800000,
+      "endTime": 1470359700000,
+      "reservationLength": "15",
+      "reservedBy": "jrubin"
     },
     {
-      "1469895360000": "15"
+      "available": false,
+      "startTime": 1470360000000,
+      "endTime": 1470360900000,
+      "reservationLength": "15",
+      "reservedBy": "jrubin"
+    },
+    {
+      "available": false,
+      "startTime": 1470361200000,
+      "endTime": 1470362700000,
+      "reservationLength": "25",
+      "reservedBy": "jrubin"
     }
   ]
 }
