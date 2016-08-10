@@ -1,27 +1,3 @@
 {
-  "schedule": [
-    {
-      "available": false,
-      "startTime": 1470411000000,
-      "endTime": 1470411300000,
-      "reservationLength": "5",
-      "reservedBy": "rubin"
-    },
-    {
-      "available": false,
-      "startTime": 1470410400000,
-      "endTime": 1470410700000,
-      "reservationLength": "5",
-      "reservedBy": "justin",
-      "availableFor": "10"
-    },
-    {
-      "available": false,
-      "startTime": 1470410820000,
-      "endTime": 1470410940000,
-      "reservationLength": "2",
-      "reservedBy": "justin",
-      "availableFor": "3"
-    }
-  ]
+  "schedule": []
 }
