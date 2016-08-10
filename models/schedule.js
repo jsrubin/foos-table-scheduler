@@ -20,6 +20,9 @@ module.exports = schedule = store('schedule');
     }
 */
 
+/* 
+	This function returns the current timestamp rounded to minute
+*/
 schedule.currentTime = function () {
 	return this.roundToMinute(_.now());
 };
@@ -28,9 +31,9 @@ schedule.currentTime = function () {
 	This function converts HHMM time into millisecond timestamp
 */
 schedule.futureTime = function (hourMinute) {
-	if (hourMinute.length < 3 || hourMinute.length > 4) {
+	if (!hourMinute || hourMinute.length < 3 || hourMinute.length > 4) {
 		console.log("\nWARN: requested time must be in HMM or HHMM format");
-		return;
+		return { available: false, msg: 'requested time must be in HMM or HHMM format' };
 	}
 	var hour = hourMinute.length === 3 ? hourMinute.substring(0, 1) : hourMinute.substring(0, 2);
 	var minute = hourMinute.substring(hourMinute.length - 2);
@@ -45,14 +48,15 @@ schedule.futureTime = function (hourMinute) {
 
 	var curHourMS = new Date(currentMS).getHours() * 3600000;
 	var curMinMS = new Date(currentMS).getMinutes() * 60000;
-	
-	if (parseInt(hourMinute) > parseInt(currentHourMinute)) {
+
+	if (parseInt(hourMinute) >= parseInt(currentHourMinute)) {
 		var difH = hmill - curHourMS;
 		var difM = mmill - curMinMS;
 		var future = currentMS + difH + difM;
 		return future;
 	}
-	return;
+	console.log("\nWARN: start time cannot be in the past");
+	return { available: false, msg: 'start time cannot be in the past' };
 };
 
 schedule.endTime = function (reservationStartTime, reservationLength) {
@@ -72,19 +76,22 @@ schedule.cancel = function (timestamp) {
 	var model = this;
 	var reservations = _.clone(this.value());
 
-	var canceled = false;
+	var canceled = {
+		'available': false,
+		'availableFor': '',
+		'reservedTill': ''
+	};
 	_.find(reservations, function(res) {
-		// return _.each(res, function(reservation, resTime) {	
-			const reservationStartTime = parseInt(res.startTime);
-			const reservationEndTime = model.endTime(reservationStartTime, res.reservationLength);
+		const reservationStartTime = parseInt(res.startTime);
+		const reservationEndTime = model.endTime(reservationStartTime, res.reservationLength);
 
-			if (timestamp >= reservationStartTime && timestamp <= reservationEndTime) {
-				model.remove(res);
-				canceled = true;
-				return true;
-			}
-		// });
+		if (timestamp >= reservationStartTime && timestamp <= reservationEndTime) {
+			model.remove(res);
+			canceled.available = true;
+			return true;
+		}
 	});
+
 	return canceled;
 };
 
@@ -119,6 +126,11 @@ schedule.isTableAvailable = function (requestedtime, requestedLength) {
 		reservedBy: ''
 	};
 
+	if (request < this.currentTime()) {
+		response.available = false;
+		return response;
+	}
+
 	_.each(reservations, function(res) {
 		const reservationStartTime = parseInt(res.startTime);
 		const reservationEndTime = model.endTime(reservationStartTime, parseInt(res.reservationLength));
@@ -127,12 +139,12 @@ schedule.isTableAvailable = function (requestedtime, requestedLength) {
 			if (request >= reservationStartTime) {
 				if (request > reservationEndTime) { // if reservation is expired/in the past then let's remove
 					if (model.currentTime() > reservationEndTime) {
-						console.log(">>>> removing expired reservation");
+						// console.log(">>>> removing expired reservation");
 						model.remove(res);
 					}
 				} else { // table currently reserved
 					const reservedTill = new Date(reservationEndTime);
-					console.log(">>>> table currently booked till " + reservedTill);
+					// console.log(">>>> table currently booked till " + reservedTill);
 					response.available = false;
 					response.reservedTill = reservedTill;
 					// isAvailable = false;
@@ -141,7 +153,7 @@ schedule.isTableAvailable = function (requestedtime, requestedLength) {
 				response.available = false;
 				// isAvailable = false;
 				const availableFor = Math.round(((reservationStartTime - request) / 60) / 1000);
-				console.log(">>>> table available for next " + availableFor + " minutes");
+				// console.log(">>>> table available for next " + availableFor + " minutes");
 				response.availableFor = availableFor.toString();
 				// check if we have the enough requested reservation time available before next reservation
 				if ((requestedLength && requestedLength < availableFor) || (!requestedLength)) {
@@ -164,11 +176,12 @@ schedule.reserve = function (reserveLength, startTime, reservedBy) {
 
 	if (startValidate < currentTime) {
 		console.log("\nWARN: start time cannot be in the past");
-		return false;
+		return { available: false, msg: 'start time cannot be in the past' };
 	}
 	if (reserveLength > reservationLengthMaxMinutes) {
-		console.log("\nWARN: reservation maximum length cannot exceed " + reservationLengthMaxMinutes);
-		return false;
+		var msg = 'reservation maximum length cannot exceed ' + reservationLengthMaxMinutes;
+		console.log('\nWARN: ' + msg);
+		return { available: false, msg: msg };
 	}
 
 	var isAvailable = this.isTableAvailable(startValidate, reserveLength);
