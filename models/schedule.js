@@ -24,7 +24,15 @@ module.exports = schedule = store('schedule');
 	This function returns the current timestamp rounded to minute
 */
 schedule.currentTime = function () {
-	return this.roundToMinute(_.now());
+	var serverTime = _.now();
+	var tz = new Date();
+	var hours = new Date(serverTime).getHours();
+	if (tz.toString().indexOf('PDT') === -1) {
+		hours = hours - 8;
+		serverTime = serverTime - hours;
+	}
+
+	return this.roundToMinute(serverTime);
 };
 
 /*
@@ -176,7 +184,7 @@ schedule.reserve = function (reserveLength, startTime, reservedBy) {
 
 	if (startValidate < currentTime) {
 		console.log("\nWARN: start time cannot be in the past");
-		return { available: false, msg: 'start time cannot be in the past' };
+		return { available: false, msg: 'start time cannot be in the past ' + currentTime };
 	}
 	if (reserveLength > reservationLengthMaxMinutes) {
 		var msg = 'reservation maximum length cannot exceed ' + reservationLengthMaxMinutes;
