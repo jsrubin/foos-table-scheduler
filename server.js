@@ -34,7 +34,7 @@ app.get('/available', function(req, res) {
 	res.json(response);
 });
 
-app.post('/schedule', function(req, res) {
+app.get('/schedule', function(req, res) {
 	var reserveLength = parseInt(req.query.reserve) || 15;
 	var futureTime = req.query.starttime ? schedule.futureTime(req.query.starttime) : schedule.currentTime();
 
@@ -51,7 +51,7 @@ app.post('/schedule', function(req, res) {
   	}
 });
 
-app.delete('/cancel', function(req, res) {
+app.get('/cancel', function(req, res) {
 	var startTime = parseInt(req.query.starttime) || schedule.currentTime();
 	var response = schedule.cancel(startTime);
 
