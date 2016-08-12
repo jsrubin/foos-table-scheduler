@@ -13,7 +13,8 @@ var request = require('request');
 var url = require('url');
 var schedule = require('./models/schedule');
 
-app.set('port', 8080);
+var port = process.env.PORT || 8080;
+app.set('port', port);
 
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
@@ -58,7 +59,7 @@ app.delete('/cancel', function(req, res) {
 });
 
 var server = app.listen(app.get('port'), function() {
-  console.log('Server started: http://localhost:' + app.get('port') + '/');
+  console.log('Server started: http://localhost:' + port + '/');
 });
 
 module.exports = server;
